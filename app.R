@@ -21,6 +21,8 @@ library(DescTools)
 library(hablar)
 library(assertive.types)
 library(magrittr)
+library(pspline)
+library(prospectr)
 
 library(ggsci)
 library(ggpmisc)
@@ -35,8 +37,47 @@ source('meltR_functions.R')
 #UI-----------
 ui <- dashboardPagePlus(
     #header--------------
-    dashboardHeader(title = "meltR"),
-    #sidebar-------------
+    dashboardHeaderPlus(
+        tags$li(class = 'dropdown',
+                tags$style(".main-header {max-height: 120px}"),
+                tags$style(".main-header .logo {height: 60px}"),
+                tags$style('.control-sidebar {padding-top: 80px}'),
+                tags$style('.main-sidebar {padding-top: 80px}')),
+        title = "meltR",
+        enable_rightsidebar = TRUE,
+        rightSidebarIcon = 'question-circle'),
+    ##rightsidebar----
+    rightsidebar = rightSidebar(
+        id = 1,
+        background = 'dark',
+        rightSidebarTabContent(
+            id = 2,
+            title = 'Non linear fitting',
+            icon = 'thermometer-half',
+            h4('I. Data preparation'),
+            tags$a(href = 'https://github.com/EricLarG4/meltR/raw/master/demo_input.xlsx',
+                   '1. Download the input file and replace the demo data with yours'),
+            p("2. Make sure to fill in the header cells"),
+            p('3. Upload the data using the raw data box in the left sidebar'),
+            p('4. Select the data to process with the input data hover panel'),
+            h4('II. Data processing'),
+            p('1. Derivate the data with the blue button'),
+            p('2. Initialize the fitting with the orange button'),
+            p('3. If necessary, correc the initialization. In particular,
+          make sure the initial Tm is close to its expected value'),
+          p('4. Start the fitting with the red button'),
+          h4('III. Results'),
+          p('1. Review the fitting. In particular, check that the baselines are consistent with the data'),
+          p('2. ...')
+        ),
+        rightSidebarTabContent(
+            id = 3,
+            title = 'Baseline explorer',
+            icon = 'binoculars',
+            p('placeholder')
+        )
+    ),
+    ##sidebar-------------
     sidebar_fullCollapse = TRUE,
     dashboardSidebar(
         ## a-meltR----
@@ -66,55 +107,80 @@ ui <- dashboardPagePlus(
                 status = 'danger',
                 solidHeader = F,
                 collapsible = T,
-                sliderInput(inputId = "melt.deriv.smooth.width",
-                            label = "Smooth window",
-                            min = 1,
-                            max = 20,
-                            value = 5,
-                            step = 1),
-                actionBttn(inputId = "bttn.deriv.melt", #initiates fit
-                           label = "Plot derivatives",
-                           icon = icon('calculator', class = 'regular'),
-                           style = "simple",
-                           color = "primary",
-                           size = "sm",
-                           block = F,
-                           no_outline = TRUE),
-                sliderInput("nb.it.melt.fit",
-                            "Max iterations",
-                            min = 500,
-                            max = 100000,
-                            value = 5000,
-                            step = 500),
-                actionBttn(inputId = "bttn.init.melt", #initiates fit
-                           label = "Initialize fitting",
-                           icon = icon('sign-out-alt', class = 'regular'),
-                           style = "simple",
-                           color = "warning",
-                           size = "sm",
-                           block = F,
-                           no_outline = TRUE),
-                actionBttn(inputId = "bttn.fit.melt", #initiates fit
-                           label = "Launch fitting",
-                           icon = icon('sign-in-alt', class = 'regular'),
-                           style = "simple",
-                           color = "danger",
-                           size = "sm",
-                           block = F,
-                           no_outline = TRUE),
-                switchInput(inputId = "toggle.baseline", #toggles baseline on/off
-                            label = "toggle baselines",
-                            value = TRUE),
-                sliderInput("temp.ff",
-                            "Temperature (°C) for folded fraction", #Temperature for deltaG calculation
-                            min = 0,
-                            max = 100,
-                            value = 37),
-                sliderInput("temp.therm",
-                            "Temperature (K) for DeltaG", #Temperature for deltaG calculation
-                            min = 273,
-                            max = 373,
-                            value = 273.15 + 22)
+                switchInput(
+                    inputId = 'drv.type',
+                    label = 'derivative algorithm',
+                    onLabel = 'auto poly',
+                    offLabel = 'Savitzky–Golay',
+                    value = TRUE,
+                    size = 'normal',
+                    width = 'auto'
+                ),
+                sliderInput(
+                    inputId = "sav.window",
+                    label = "Savitzky–Golay window",
+                    min = 3,
+                    max = 21,
+                    value = 5,
+                    step = 2
+                ),
+                actionBttn(
+                    inputId = "bttn.deriv.melt", #initiates fit
+                    label = "Plot derivatives",
+                    icon = icon('calculator', class = 'regular'),
+                    style = "simple",
+                    color = "primary",
+                    size = "sm",
+                    block = F,
+                    no_outline = TRUE
+                ),
+                sliderInput(
+                    "nb.it.melt.fit",
+                    "Max iterations",
+                    min = 500,
+                    max = 100000,
+                    value = 5000,
+                    step = 500
+                ),
+                actionBttn(
+                    inputId = "bttn.init.melt", #initiates fit
+                    label = "Initialize fitting",
+                    icon = icon('sign-out-alt', class = 'regular'),
+                    style = "simple",
+                    color = "warning",
+                    size = "sm",
+                    block = F,
+                    no_outline = TRUE
+                ),
+                actionBttn(
+                    inputId = "bttn.fit.melt", #initiates fit
+                    label = "Launch fitting",
+                    icon = icon('sign-in-alt', class = 'regular'),
+                    style = "simple",
+                    color = "danger",
+                    size = "sm",
+                    block = F,
+                    no_outline = TRUE
+                ),
+                switchInput(
+                    inputId = "toggle.baseline", #toggles baseline on/off
+                    label = "toggle baselines",
+                    value = TRUE
+                ),
+                sliderInput(
+                    "temp.ff",
+                    "Temperature (°C) for folded fraction", #Temperature for deltaG calculation
+                    min = 0,
+                    max = 100,
+                    value = 37
+                ),
+                sliderInput(
+                    "temp.therm",
+                    "Temperature (K) for DeltaG", #Temperature for deltaG calculation
+                    min = 273,
+                    max = 373,
+                    value = 273.15 + 22
+                )
             ),
             boxPlus(
                 title = "Download figures",
@@ -258,6 +324,16 @@ ui <- dashboardPagePlus(
                                    title = 'Derivative plot',
                                    plotOutput("p.melt.derivative"),
                                    icon = icon('calculator', class = 'regular'),
+                               ),
+                               tabPanel(
+                                   title = 'Folded fraction',
+                                   width = 6,
+                                   plotOutput("p.folded.melt.fit")
+                               ),
+                               tabPanel(
+                                   title = 'Modeled folded fraction',
+                                   width = 6,
+                                   plotlyOutput("p.folded.modeled")
                                )
                            ),
                            collapsible_tabBox(
@@ -288,41 +364,24 @@ ui <- dashboardPagePlus(
                     ),
                     column(12,
                            collapsible_tabBox(
-                               title = 'Fit results',
-                               id = 'tabbox.3',
-                               width = 6,
-                               selected = NULL,
-                               side = 'left',
-                               tabPanel(
-                                   title = 'Folded fraction',
-                                   width = 6,
-                                   plotOutput("p.folded.melt.fit")
-                               ),
-                               tabPanel(
-                                   title = 'Modeled folded fraction',
-                                   width = 6,
-                                   plotlyOutput("p.folded.modeled")
-                               )
-                           ),
-                           collapsible_tabBox(
                                title = 'Melting temperatures',
                                id = 'tabbox.4',
-                               width = 6,
+                               width = 12,
                                selected = NULL,
                                side = 'left',
                                tabPanel(
                                    title = 'Table',
-                                   width = 6,
+                                   width = 12,
                                    DTOutput("fit.melt.result.summary")
                                ),
                                tabPanel(
                                    title = 'Boxplots',
-                                   width = 6,
+                                   width = 12,
                                    plotOutput("fit.melt.result.plot")
                                ),
                                tabPanel(
                                    title = 'dtheta/d(1/T)',
-                                   width = 6,
+                                   width = 12,
                                    plotOutput('theta.deriv')
                                )
                            )
@@ -342,7 +401,7 @@ ui <- dashboardPagePlus(
                 absolutePanel(
                     id = "custom.melt",
                     # class = "panel panel-default",
-                    top = 125, right = 100,
+                    top = 150, right = 100,
                     width = 200, height = 'auto',
                     draggable = TRUE, fixed = TRUE,
                     bsCollapse(id = 'bsCollapseTest',
@@ -445,7 +504,7 @@ ui <- dashboardPagePlus(
             absolutePanel(
                 id = "filter.melt",
                 # class = "panel panel-default",
-                top = 125, right = 850,
+                top = 150, right = 850,
                 width = 300, height = 'auto',
                 draggable = TRUE, fixed = TRUE,
                 bsCollapse(id = 'bsCollapseMelt',
@@ -781,53 +840,70 @@ server <- function(input, output, session) {
 
     melt.derivative <- eventReactive(input$bttn.deriv.melt,{
 
-        melt.derivative.calc <- data.frame() #initialize data frame for loop result collection
+        if(input$drv.type == T){
 
-        for (i in unique(melt.filtered()$id)) {
+            spl.drv <- melt.filtered() %>%
+                group_by(id) %>%
+                mutate(emp = abs(
+                    predict(
+                        sm.spline(T.K, abs.melt), #automated polynomial smoothing
+                        T.K, 1) #get deriv against temperature from polynomial function
+                ))
 
-            #extract data per id
-            buffer.melt <- melt.filtered() %>%
-                filter(i == melt.filtered()$id)
+            #switches UI tab automatically to derivative when calculating it
+            observeEvent(input$bttn.deriv.melt, {
+                updateTabsetPanel(session = session,
+                                  inputId = "tabbox.1",
+                                  selected = 'Derivative plot'
+                )
+            })
 
-            #calculates differences
-            diffy <- diff(buffer.melt$abs.melt)
-            diffx <- diff(buffer.melt$T.K)
+            return(spl.drv)
 
-            melt.derivative.calc.buffer <- cbind(diffy, diffx) %>%
-                as.data.frame() %>%
-                mutate(diffyx = diffy/diffx) %>% #calculates derivative
-                add_column(id = i) %>% #adds id
-                #adds temperatures (and removes first row to match number of rows from differences)
-                add_column(T.K = buffer.melt$T.K[2:length(buffer.melt$T.K)],
-                           ramp = buffer.melt$ramp[2:length(buffer.melt$ramp)])
+        } else {
 
-            #result collection
-            melt.derivative.calc <- base::rbind(melt.derivative.calc.buffer, melt.derivative.calc)
+            #Savitzky-Golay function
+            sav <- function(input, diff.order, poly.order, win.size){
+                input %>%
+                    #adapts number of row to the smoothing output
+                    slice_min(n = nrow(input)-(win.size-1)/2, order_by = T.K) %>% #removes coldest temp
+                    slice_max(n = nrow(input)-(win.size-1), order_by = T.K) %>% #removes hottest temp
+                    mutate(emp = abs(#absolute value
+                        prospectr::savitzkyGolay(#Savitzky-Golay smooth
+                            X = input$abs.melt, #input is absorbance
+                            m = diff.order, #differential order
+                            p = poly.order, #polynomilal order
+                            w = win.size #window size
+                        )
+                    ))
+            }
 
+            #initialize a collection data.frame
+            collec <- data.frame()
+
+            #loop across ids
+            for (i in unique(melt.filtered()$id)) {
+
+                buffer <- sav(
+                    input = melt.filtered() %>%
+                        filter(id == i) %>% #select id
+                        arrange(-T.K), #important to slice correctly, all data ordered by decreasing T.
+                    diff.order = 1, #first derivative
+                    poly.order = 2, #poly 2nd order
+                    win.size = input$sav.window #user defined window
+                )
+
+                collec <- rbind(collec, buffer)
+            }
+
+            return(collec)
         }
-
-        #switches UI tab automatically to derivative when calculating it
-        observeEvent(input$bttn.deriv.melt, {
-            updateTabsetPanel(session = session,
-                              inputId = "tabbox.1",
-                              selected = 'Derivative plot'
-            )
-        })
-
-        #Smoothing and removal of extrema
-        melt.derivative <- melt.derivative.calc %>%
-            group_by(id) %>%
-            mutate(rM = abs(rollmean(diffyx, input$melt.deriv.smooth.width, fill = NA, align="right"))) %>% #rolling average
-            slice((input$melt.deriv.smooth.width+1):(length(rM)-(input$melt.deriv.smooth.width+1))) #removes extrema
-
-        return(melt.derivative)
-
     })
 
     #plot derivatives
     output$p.melt.derivative <- renderPlot({
 
-        p46 <- ggplot(melt.derivative(), aes(T.K, rM, color = id, shape = ramp)) +
+        p46 <- ggplot(melt.derivative(), aes(T.K, emp, color = id, shape = ramp)) +
             geom_point(size = input$size.dot.melt, alpha = input$alpha.dot.melt) +
             theme_pander() +
             scale_color_d3(palette = "category20") +
@@ -844,7 +920,7 @@ server <- function(input, output, session) {
     Tm.init.deriv <- reactive({
         melt.derivative() %>%
             group_by(id) %>%
-            filter(rM == max(rM)) %>%
+            filter(emp == max(emp)) %>%
             select(id, T.K)
     })
 
@@ -959,6 +1035,14 @@ server <- function(input, output, session) {
             #row bind the results acroos the loop
             fit.melt.results <- rbind(fit.melt.results, fit.melt.output.buffer)
         }
+
+        #switches UI tab automatically to fit results when calculating them
+        observeEvent(input$bttn.deriv.melt, {
+            updateTabsetPanel(session = session,
+                              inputId = "tabbox.1",
+                              selected = 'Folded fraction'
+            )
+        })
 
         return(fit.melt.results)
     })
@@ -1171,11 +1255,6 @@ server <- function(input, output, session) {
     })
 
 
-
-
-
-
-
     #9-folded fraction intersect----
 
     theta.intersect <- reactive({
@@ -1193,51 +1272,26 @@ server <- function(input, output, session) {
     #10-folded fraction derivatives----
 
     theta.deriv <- reactive({
+
         theta.deriv <- fit.melt.result.df() %>%
-            select(id, ramp, T.K, folded.fraction.base)
+            select(id, ramp, T.K, folded.fraction.base) %>%
+            mutate(recip.T = 1/T.K)
 
-        theta.deriv.calc <- data.frame() #initialize data frame for loop result collection
-
-        for (i in unique(theta.deriv$id)) {
-
-            #extract data per id
-            buffer.deriv <- theta.deriv %>%
-                filter(i == theta.deriv$id) %>%
-                mutate(recip.T = 1/T.K)
-
-            #calculates differences
-            diffy <- diff(buffer.deriv$folded.fraction.base)
-            diffx <- diff(buffer.deriv$recip.T)
-
-            theta.deriv.calc.buffer <- cbind(diffy, diffx) %>%
-                as.data.frame() %>%
-                mutate(diffyx = diffy/diffx) %>% #calculates derivative
-                add_column(id = i) %>% #adds id
-                #adds temperatures (and removes first row to match number of rows from differences)
-                add_column(
-                    recip.T = buffer.deriv$recip.T[2:length(buffer.deriv$recip.T)],
-                    ramp = buffer.deriv$ramp[2:length(buffer.deriv$ramp)]
-                )
-
-            #result collection
-            theta.deriv.calc <- base::rbind(theta.deriv.calc.buffer, theta.deriv.calc)
-
-        }
-
-        #Smoothing and removal of extrema
-        theta.deriv <- theta.deriv.calc %>%
+        spl.drv <- theta.deriv %>%
             group_by(id) %>%
-            mutate(rM = abs(rollmean(diffyx, input$melt.deriv.smooth.width, fill = NA, align="right"))) %>% #rolling average
-            slice((input$melt.deriv.smooth.width+1):(length(rM)-(input$melt.deriv.smooth.width+1))) #removes extrema
+            mutate(rM = abs(
+                predict(
+                    sm.spline(recip.T, folded.fraction.base), #automated polynomial smoothing
+                    recip.T, 1) #get deriv against temperature from polynomial function
+            ))
 
-        return(theta.deriv)
-
+        return(spl.drv)
     })
 
 
     output$theta.deriv <- renderPlot({
 
-        p77 <- ggplot(theta.deriv(), aes(1/recip.T, rM, color = id, shape = ramp)) +
+        p77 <- ggplot(theta.deriv(), aes(recip.T, rM, color = id, shape = ramp)) +
             geom_point(size = input$size.dot.melt, alpha = input$alpha.dot.melt) +
             theme_pander() +
             scale_color_d3(palette = "category20") +
@@ -1261,7 +1315,7 @@ server <- function(input, output, session) {
 
 
 
-    # 11-baselines----
+    # 11-baseline generator----
 
     ## a-choice of baseline ranges----
     output$p.melt.filtered.base <- renderPlot({
@@ -1520,7 +1574,7 @@ server <- function(input, output, session) {
                        group.id = i,
                        comment = unique(melt.filtered.group$comment)
                        # oligo.id = unique(melt.filtered.group$oligo.id)
-                       )
+                )
 
             tms <- rbind(tms, gen)
         }
@@ -1611,15 +1665,16 @@ server <- function(input, output, session) {
         # if(is.null(input$input.file)) {return(NULL)}
         # else {
         fit.melt.result.df() %>%
-            select(id, oligo, ramp, comment, rep, fit.Tm.K, fit.Tm.C, P2SD, DeltaH, DeltaS) %>%
+            select(id, oligo, ramp, comment, rep, init.Tm, fit.Tm.K, fit.Tm.C, P2SD, DeltaH, DeltaS) %>%
             left_join(theta.intersect(), by = c('id')) %>%
             left_join(theta.deriv.max(), by = c('id')) %>%
+            mutate(init.Tm = init.Tm - 273.15) %>%
             distinct() %>%
             group_by(id) %>%
             mutate(DeltaG = DeltaH - input$temp.therm * DeltaS) %>%
             group_by(oligo, ramp, comment) %>%
-            mutate(mean.Tm.K = mean(fit.Tm.K), mean.Tm.C = mean(fit.Tm.C),
-                   sd.Tm.K = SD(fit.Tm.K), sd.Tm.C = SD(fit.Tm.C))
+            mutate(mean.Tm.C = mean(fit.Tm.C),
+                   sd.Tm.C = SD(fit.Tm.C))
         # }
     })
 
@@ -1630,22 +1685,22 @@ server <- function(input, output, session) {
         else {
             datatable(
                 fit.melt.result.summary() %>%
-                    setcolorder(c(
-                        'id', 'oligo', 'comment', 'ramp', 'rep', 'fit.Tm.C', 'tm.inter.c', 'tm.deriv.c', 'theta.temp'
-                    )
+                    setcolorder(
+                        c('id', 'oligo', 'comment', 'ramp', 'rep',
+                          'init.Tm', 'fit.Tm.K', 'fit.Tm.C', 'tm.inter.c',
+                          'tm.deriv.c', 'theta.temp'
+                        )
                     ),
                 extensions = c('Buttons', 'Responsive', 'Scroller'),
                 colnames = c(
+                    "Tm: max(dA/dT) (°C)" = "init.Tm",
                     "Tm: fit (K)" = "fit.Tm.K",
                     "Tm: fit (°C)" = "fit.Tm.C",
                     "Tm: intersect (K)" = 'tm.inter',
                     "Tm: intersect (°C)" = 'tm.inter.c',
                     "Tm: derivative (K)" = 'tm.deriv',
                     'Tm: derivative (°C)' = 'tm.deriv.c',
-                    "SD Tm (fit)" = "P2SD",
-                    "SD Tm (K)" = "sd.Tm.K",
                     "SD Tm (°C)" = "sd.Tm.C",
-                    "Mean Tm (K)" = "mean.Tm.K",
                     "Mean Tm (°C)" = "mean.Tm.C",
                     'Replicate'= 'rep',
                     'Oligonucleotide' = 'oligo',
@@ -1665,14 +1720,14 @@ server <- function(input, output, session) {
                     autoWidth = F,
                     dom = 'Bfrtip', #button position
                     buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-                    columnDefs = list(list(visible=FALSE, targets=c(0,9:19)))
+                    columnDefs = list(list(visible=FALSE, targets=c(0,11:18)))
                 )
             ) %>%
-                formatRound(c("Tm: fit (K)", "Tm: fit (°C)", 'Tm: intersect (K)', 'Tm: intersect (°C)',
+                formatRound(c("Tm: fit (K)", "Tm: fit (°C)",
+                              'Tm: intersect (K)', 'Tm: intersect (°C)',
                               'Folded fraction',
                               "DeltaH", "DeltaS", "DeltaG",
-                              "Mean Tm (K)", "Mean Tm (°C)", "SD Tm (K)", "SD Tm (°C)",
-                              "SD Tm (fit)"),
+                              "Mean Tm (°C)", "SD Tm (°C)"),
                             digits = 2) %>%
                 formatRound(c("Tm: derivative (K)", "Tm: derivative (°C)"),
                             digits = 1)
@@ -1684,12 +1739,18 @@ server <- function(input, output, session) {
         if(file.toggle()=='no') {return(NULL)}
         else {
             p47 <- fit.melt.result.summary() %>%
-                select(id, oligo, comment, ramp, rep, fit.Tm.C, tm.inter.c, tm.deriv.c) %>%
+                select(id, oligo, comment, ramp, rep, fit.Tm.C, tm.inter.c, tm.deriv.c, init.Tm) %>%
                 pivot_longer(
-                    cols = c(6:8),
+                    cols = c(6:9),
                     names_to = 'method',
                     values_to = 'tm'
                 ) %>%
+                mutate(method = case_when(
+                    method == 'init.Tm' ~ 'max(dA/dT)',
+                    method == 'fit.Tm.C' ~ 'fit (parameter)',
+                    method == 'tm.inter.c' ~ 'fit (intersect)',
+                    method == 'tm.deriv.c' ~ 'max(dtheta/dT-1)'
+                )) %>%
                 ggplot() +
                 geom_boxplot(aes(x = paste(oligo, comment, sep = "-"), y = tm),
                              color = "grey75") +
