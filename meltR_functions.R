@@ -83,7 +83,8 @@ basegenR <- function(start.low = c(275,290),
                      end.low = c(290,305),
                      start.high = c(340,355),
                      end.high = c(345,355),
-                     t.range = 5,
+                     t.range.low = 5,
+                     t.range.high = 5,
                      nb.spl = 'max'){
 
   #determines the largest temperature range
@@ -108,8 +109,8 @@ basegenR <- function(start.low = c(275,290),
     mutate(range.low = max.low-min.low,
            range.high = max.high - min.high) %>%
     #discards baselines with ranges below t.range
-    filter(range.low >= t.range,
-           range.high >= t.range) %>%
+    filter(range.low >= t.range.low,
+           range.high >= t.range.high) %>%
     select(-c(range.low, range.high)) #discards useless columns to save memory
 
   if(nb.spl == 'max'){
@@ -155,7 +156,10 @@ tm.interpolatR <- function(raw.input, theta.base.temp = 20,
   #Calculates the baselines over the full temperature range from the linear
   #regression coefficients
 
-  bases <- raw.input %>%
+
+  if (length(unique(raw.input$ramp))==2) {
+
+    bases <- raw.input %>%
     mutate(
       #calculates low temp baselines
       low.bl = if_else(
@@ -193,6 +197,36 @@ tm.interpolatR <- function(raw.input, theta.base.temp = 20,
     #calculates folded fraction
     mutate(theta = (high.bl - abs)/(high.bl - low.bl)) %>%
     ungroup()
+
+  } else {
+
+    bases <- raw.input %>%
+      mutate(ramp = 'single') %>%
+      mutate(
+        #calculates low temp baselines
+        low.bl = regresseR(raw.input, 'single', min.low.cool, max.low.cool)[1]
+          +regresseR(raw.input, 'single', min.low.cool, max.low.cool)[2]*temp,
+        #calculates high temp baselines
+        high.bl = regresseR(raw.input, 'single', min.high.cool, max.high.cool)[1]
+          +regresseR(raw.input, 'single', min.high.cool, max.high.cool)[2]*temp,
+        #adds variable to identify the baselines from their temp ranges
+        min.low.cool = min.low.cool,
+        max.low.cool = max.low.cool,
+        min.high.cool = min.high.cool,
+        max.high.cool = max.high.cool,
+        #creates a baseline id from variables above
+        id = paste(min.low.cool, max.low.cool, min.high.cool, max.high.cool, sep = '/')
+      ) %>%
+      group_by(id) %>%
+      mutate( #calculates baseline median
+        med.bl = (low.bl + high.bl)/2,) %>%
+      group_by(ramp, temp, id) %>%
+      #calculates folded fraction
+      mutate(theta = (high.bl - abs)/(high.bl - low.bl)) %>%
+      ungroup()
+  }
+
+
 
   thetas <- bases  %>%
     #discard irrelevant columns to save memory
@@ -319,3 +353,19 @@ data_summary <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
+
+#Savitzky-Golay function----
+sav <- function(input, diff.order, poly.order, win.size){
+  input %>%
+    #adapts number of row to the smoothing output
+    slice_min(n = nrow(input)-(win.size-1)/2, order_by = T.K) %>% #removes coldest temp
+    slice_max(n = nrow(input)-(win.size-1), order_by = T.K) %>% #removes hottest temp
+    mutate(emp = abs(#absolute value
+      prospectr::savitzkyGolay(#Savitzky-Golay smooth
+        X = input$abs.melt, #input is absorbance
+        m = diff.order, #differential order
+        p = poly.order, #polynomilal order
+        w = win.size #window size
+      )
+    ))
+}
