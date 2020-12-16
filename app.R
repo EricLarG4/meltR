@@ -93,13 +93,23 @@ ui <- dashboardPagePlus(
                     'raw.data.input',
                     'Select .xlsx file'
                 ),
-                switchInput(inputId = "melt.blank", #toggles baseline on/off
-                            label = "Blank",
-                            onLabel = 'subtract',
-                            offLabel = 'ignore',
-                            value = TRUE,
-                            size = 'normal',
-                            width = 'auto')
+                switchInput(
+                    inputId = "melt.blank", #toggles baseline on/off
+                    label = "Blank",
+                    onLabel = 'subtract',
+                    offLabel = 'ignore',
+                    value = TRUE,
+                    size = 'normal',
+                    width = 'auto'
+                ),
+                switchInput(
+                    inputId = 'toggle.eps', #toggles epsilon calculation on/off
+                    label = 'normalisation',
+                    onLabel = 'yes', offLabel = 'no',
+                    value = TRUE,
+                    size = 'normal',
+                    width = 'auto'
+                )
             ),
             boxPlus(
                 width = "100%",
@@ -110,11 +120,11 @@ ui <- dashboardPagePlus(
                 switchInput(
                     inputId = 'drv.type',
                     label = 'derivative algorithm',
-                    onLabel = 'auto poly',
+                    onLabel = 'Spline',
                     offLabel = 'Savitzky–Golay',
                     value = TRUE,
                     size = 'normal',
-                    width = 'auto'
+                    width = 25
                 ),
                 sliderInput(
                     inputId = "sav.window",
@@ -252,8 +262,15 @@ ui <- dashboardPagePlus(
                     value = c(80, 92)
                 ),
                 sliderInput(
-                    't.range',
-                    'Minimum baseline width (K)',
+                    't.range.low',
+                    'Minimum low baseline width (K)',
+                    min = 2, max = 10,
+                    step = 1,
+                    value = 5
+                ),
+                sliderInput(
+                    't.range.high',
+                    'Minimum high baseline width (K)',
                     min = 2, max = 10,
                     step = 1,
                     value = 5
@@ -305,7 +322,7 @@ ui <- dashboardPagePlus(
                 fluidRow(
                     column(12,
                            collapsible_tabBox(
-                               title = 'Input data',
+                               title = 'Data',
                                id = 'tabbox.1',
                                width = 6,
                                selected = NULL,
@@ -321,6 +338,10 @@ ui <- dashboardPagePlus(
                                    icon = icon('filter')
                                ),
                                tabPanel(
+                                   title = 'Derivative data',
+                                   DTOutput('melt.derivative.0'),
+                               ),
+                               tabPanel(
                                    title = 'Derivative plot',
                                    plotOutput("p.melt.derivative"),
                                    icon = icon('calculator', class = 'regular'),
@@ -334,6 +355,11 @@ ui <- dashboardPagePlus(
                                    title = 'Modeled folded fraction',
                                    width = 6,
                                    plotlyOutput("p.folded.modeled")
+                               ),
+                               tabPanel(
+                                   title = 'Processed data',
+                                   width = 6,
+                                   DTOutput('processed.data')
                                )
                            ),
                            collapsible_tabBox(
@@ -545,7 +571,7 @@ server <- function(input, output, session) {
         input$raw.data.input
     })
 
-    #2-blank management----
+    #2a-blank management----
 
     #allows to toggle the blank subtraction on/off
     blk.subtract <- reactive({
@@ -555,6 +581,19 @@ server <- function(input, output, session) {
             blk.subtract = 0
         }
     })
+
+    #2b-normalization management----
+
+    #allows to toggle the blank subtraction on/off
+    toggle.eps <- reactive({
+        if (input$toggle.eps == T) {
+            toggle.eps = 1
+        } else {
+            toggle.eps = 0
+        }
+    })
+
+    # output$toggle.eps <- renderText({toggle.eps})
 
     #3-raw data processing
     melt.input <- reactive({
@@ -610,12 +649,26 @@ server <- function(input, output, session) {
             mutate(id = paste(oligo, comment, ramp, rep, sep = '-'))%>% #create an experiment id
             # Detects whether the raw data is supplied in Celsius or Kelvin and converts to Kelvin if necessary
             mutate(T.K = if_else(abs.raw < 100, T.unk + 273.15, T.unk)) %>%
-            add_column(blk.sub = blk.subtract()) %>%
+            add_column(blk.sub = blk.subtract(),
+                       toggle.eps = toggle.eps()) %>%
             group_by(id) %>%
             #subtract the blank column is values are provided and toggle activated + converts to molar absorbtion coeff
-            mutate(abs.melt = if_else(is.na(abs.blk), abs.raw/(melt.c/1E6 * melt.l),
-                                      if_else(blk.sub == 1, (abs.raw - abs.blk)/(melt.c/1E6 * melt.l), abs.raw/(melt.c/1E6 * melt.l)))) %>%
-            ungroup()
+            mutate(
+                abs.melt = if_else(
+                    is.na(abs.blk),
+                    abs.raw/(melt.c/1E6 * melt.l),
+                    if_else(blk.sub == 1,
+                            (abs.raw - abs.blk),
+                            abs.raw)
+                )) %>%
+            mutate(
+                abs.melt = if_else(
+                    toggle.eps == 1,
+                    abs.melt/(melt.c/1E6 * melt.l),
+                    abs.melt
+                )) %>%
+            ungroup() %>%
+            select(-toggle.eps)
 
 
     })
@@ -798,8 +851,7 @@ server <- function(input, output, session) {
                         'concentration' = 'melt.c',
                         'buffer' = 'comment',
                         'electrolyte' = 'buffer',
-                        'extinction coefficient
-                    ' = 'abs.melt'
+                        'abs/extinction coefficient' = 'abs.melt'
                     ),
                     rownames = F,
                     escape = T,
@@ -827,8 +879,14 @@ server <- function(input, output, session) {
                 geom_point(size = input$size.dot.melt, alpha = input$alpha.dot.melt) +
                 scale_color_d3() +
                 theme_pander() +
-                xlab("Temperature (K)") +
-                ylab(bquote(epsilon*' ('*M^-1~cm^-1*')'))  #modifies axes titles
+                xlab("Temperature (K)")
+
+
+            if (input$toggle.eps == TRUE) { #modifies axes titles
+                p45 <- p45 + ylab(bquote(epsilon*' ('*M^-1~cm^-1*')'))
+            } else {
+                p45 <- p45 + ylab('A')
+            }
 
             # p45 <- melt.palette.modifier(plot = p45)
 
@@ -846,8 +904,8 @@ server <- function(input, output, session) {
                 group_by(id) %>%
                 mutate(emp = abs(
                     predict(
-                        sm.spline(T.K, abs.melt), #automated polynomial smoothing
-                        T.K, 1) #get deriv against temperature from polynomial function
+                        sm.spline(T.K, abs.melt), #automated spline smoothing
+                        T.K, 1) #get deriv against temperature from spline function
                 ))
 
             #switches UI tab automatically to derivative when calculating it
@@ -861,22 +919,6 @@ server <- function(input, output, session) {
             return(spl.drv)
 
         } else {
-
-            #Savitzky-Golay function
-            sav <- function(input, diff.order, poly.order, win.size){
-                input %>%
-                    #adapts number of row to the smoothing output
-                    slice_min(n = nrow(input)-(win.size-1)/2, order_by = T.K) %>% #removes coldest temp
-                    slice_max(n = nrow(input)-(win.size-1), order_by = T.K) %>% #removes hottest temp
-                    mutate(emp = abs(#absolute value
-                        prospectr::savitzkyGolay(#Savitzky-Golay smooth
-                            X = input$abs.melt, #input is absorbance
-                            m = diff.order, #differential order
-                            p = poly.order, #polynomilal order
-                            w = win.size #window size
-                        )
-                    ))
-            }
 
             #initialize a collection data.frame
             collec <- data.frame()
@@ -907,8 +949,13 @@ server <- function(input, output, session) {
             geom_point(size = input$size.dot.melt, alpha = input$alpha.dot.melt) +
             theme_pander() +
             scale_color_d3(palette = "category20") +
-            xlab("Temperature (K)") +
-            ylab(bquote(Delta*epsilon*'/'*Delta*'T ('*M^-1~cm^-1*K^-1*')'))
+            xlab("Temperature (K)")
+
+        if (input$toggle.eps == TRUE) { #modifies axes titles
+            p46 <- p46 + ylab(bquote(Delta*epsilon*'/'*Delta*'T ('*M^-1~cm^-1*K^-1*')'))
+        } else {
+            p46 <- p46 + ylab(bquote(Delta*A*'/'*Delta*'T ('*K^-1*')'))
+        }
 
         # p46 <- melt.palette.modifier(plot = p46)
 
@@ -916,20 +963,91 @@ server <- function(input, output, session) {
 
     })
 
+    #derivative output table
+
+    output$melt.derivative.0 <- DT::renderDT(server=FALSE,{
+
+        melt.derivative() %>%
+            # differentiation traceability columns:
+            mutate(
+                drv.type = if_else(input$drv.type == T, 'spline', 'Savitzky-Golay'), #method chosen
+                sav.window = if_else(input$drv.type == T, NA_integer_, input$sav.window) #smooth window
+            ) %>%
+            datatable(
+                extensions = c('Buttons', 'Responsive', 'Scroller'),
+                # colnames = c("T at max(dA/dT)" = "T.K",
+                #              "id" = 'id',
+                #              "electrolyte" = 'buffer',
+                #              'buffer' = 'comment',
+                #              'replicate' = 'rep',
+                #              'method' = 'drv.type',
+                #              'smooth window' = 'sav.window'),
+                rownames = F,
+                escape = T,
+                filter = 'top',
+                autoHideNavigation = T,
+                options = list(
+                    deferRender = TRUE,
+                    scrollY = 200,
+                    scroller = F,
+                    pageLength = 100,
+                    autoWidth = F,
+                    dom = 'Bfrtip', #button position
+                    buttons = c('copy', 'csv', 'excel', 'colvis') #buttons
+                    # columnDefs = list(list(visible=FALSE, targets=c(0,2,3)))
+                )
+            )
+    })
+
+
+
     #6-fit initialization----
     Tm.init.deriv <- reactive({
         melt.derivative() %>%
             group_by(id) %>%
-            filter(emp == max(emp)) %>%
-            select(id, T.K)
+            filter(emp == max(emp)) %>% #only keeps temperature at max derivative
+            distinct(id, .keep_all = TRUE) %>% #remove duplicated rows
+            select(id, oligo, buffer, cation, comment, rep, ramp, T.K) %>% #selects relevant columns
+            #differentiation traceability columns:
+            mutate(
+                drv.type = if_else(input$drv.type == T, 'Spline', 'Savitzky-Golay'), #method chosen
+                sav.window = if_else(input$drv.type == T, NA_integer_, input$sav.window) #smooth window
+            )
+
     })
 
     output$melt.derivative <- DT::renderDT({
-        Tm.init.deriv()
+
+        datatable(
+            Tm.init.deriv(),
+            extensions = c('Buttons', 'Responsive', 'Scroller'),
+            colnames = c("T at max(dA/dT)" = "T.K",
+                         "id" = 'id',
+                         "electrolyte" = 'buffer',
+                         'buffer' = 'comment',
+                         'replicate' = 'rep',
+                         'method' = 'drv.type',
+                         'smooth window' = 'sav.window'),
+            rownames = F,
+            escape = T,
+            filter = 'top',
+            autoHideNavigation = T,
+            options = list(
+                deferRender = TRUE,
+                scrollY = 200,
+                scroller = F,
+                pageLength = 100,
+                autoWidth = F,
+                dom = 'Bfrtip', #button position
+                buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
+                columnDefs = list(list(visible=FALSE, targets=c(0,2,3)))
+            )
+        )
     })
 
     tm.init0 <- eventReactive(input$bttn.init.melt, {
         tm.init0 <- Tm.init.deriv() %>%
+            select(id, T.K) %>%
             rename("Tm.init" = "T.K") %>%
             add_column(P1.init = 1.3e+05,
                        P3.init = 1,
@@ -1101,6 +1219,39 @@ server <- function(input, output, session) {
         # }
     })
 
+    output$processed.data <- renderDT(server=FALSE,{
+        fit.melt.result.df() %>%
+            select(id, oligo, buffer, cation, comment, rep, T.K, folded.fraction.base,
+                   folded.fraction) %>%
+            mutate(T.K = T.K-273.15) %>%
+            datatable(
+                extensions = c('Buttons', 'Responsive', 'Scroller'),
+                colnames = c(
+                    'electrolyte' = 'buffer',
+                    'buffer' = 'comment',
+                    'replicate' = 'rep',
+                    'temperature' = 'T.K',
+                    'folded fraction' = 'folded.fraction.base',
+                    'model' = 'folded.fraction'
+                ),
+                rownames = F,
+                escape = T,
+                filter = 'top',
+                autoHideNavigation = T,
+                options = list(
+                    deferRender = TRUE,
+                    scrollY = 200,
+                    scroller = F,
+                    pageLength = 25,
+                    autoWidth = F,
+                    dom = 'Bfrtip', #button position
+                    buttons = c('copy', 'csv', 'excel', 'colvis') #buttons
+                    # columnDefs = list(list(visible=FALSE, targets=c(3,6, 8, 10, 12, 14, 16, 17, 18, 19, 20)))
+                )
+            ) %>%
+            formatRound(c('model', 'folded fraction', 'temperature'), digits = 3)
+    })
+
 
     #outputs the fitted raw data
     p.raw.melt.fit <- reactive({
@@ -1110,7 +1261,6 @@ server <- function(input, output, session) {
             geom_point(aes(T.K, abs.melt, color = id), size = input$size.dot.melt, alpha = input$alpha.dot.melt, shape = 16) + #plots the experimental data
             geom_line(aes(x = T.K, y = raw.fit.y, color = id),
                       size = input$size.line.melt, alpha = input$alpha.line.melt) +
-            ylab(bquote(epsilon*' ('*M^-1~cm^-1*')')) + #modifies axes titles
             xlab("Temperature (K)") +
             # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) +
             labs(color="id") +
@@ -1144,6 +1294,12 @@ server <- function(input, output, session) {
                 geom_line(aes(x = T.K, y = high.T.baseline, color = id),
                           size = input$size.baseline.melt, alpha = input$alpha.baseline.melt, linetype = "dashed")
         } else { p0 }
+
+        if (input$toggle.eps == TRUE) { #modifies axes titles
+            p0 <- p0 + ylab(bquote(epsilon*' ('*M^-1~cm^-1*')'))
+        } else {
+            p0 <- p0 + ylab('A')
+        }
 
         p0 <- melt.palette.modifier(plot = p0)
 
@@ -1281,8 +1437,8 @@ server <- function(input, output, session) {
             group_by(id) %>%
             mutate(rM = abs(
                 predict(
-                    sm.spline(recip.T, folded.fraction.base), #automated polynomial smoothing
-                    recip.T, 1) #get deriv against temperature from polynomial function
+                    sm.spline(recip.T, folded.fraction.base), #automated spline smoothing
+                    recip.T, 1) #get deriv against temperature from spline function
             ))
 
         return(spl.drv)
@@ -1354,8 +1510,13 @@ server <- function(input, output, session) {
                            size = 1) +
                 scale_color_d3() +
                 theme_pander() +
-                xlab("Temperature (°C)") +
-                ylab(bquote(epsilon*' ('*M^-1~cm^-1*')'))
+                xlab("Temperature (°C)")
+
+            if (input$toggle.eps == TRUE) { #modifies axes titles
+                p666 <- p666 + ylab(bquote(epsilon*' ('*M^-1~cm^-1*')'))
+            } else {
+                p666 <- p666 + ylab('A')
+            }
 
             return(p666)
         }
@@ -1368,7 +1529,8 @@ server <- function(input, output, session) {
                  end.low = input$end.low+273.15,
                  start.high = input$start.high+273.15,
                  end.high = input$end.high+273.15,
-                 t.range = input$t.range,
+                 t.range.low = input$t.range.low,
+                 t.range.high = input$t.range.high,
                  nb.spl = input$nb.spl)
     })
 
@@ -1390,8 +1552,8 @@ server <- function(input, output, session) {
                           pageLength = 25,
                           autoWidth = F,
                           dom = 'Bfrtip', #button position
-                          buttons = c('copy', 'csv', 'excel', 'colvis'), #buttons
-                          columnDefs = list(list(visible=FALSE, targets=c(0)))
+                          buttons = c('copy', 'csv', 'excel', 'colvis') #buttons
+                          # columnDefs = list(list(visible=FALSE, targets=c(0)))
                       )
             )
     )
@@ -1487,7 +1649,7 @@ server <- function(input, output, session) {
 
 
     p.bases <- reactive({
-        baseline.gen() %>%
+        p345 <- baseline.gen() %>%
             # filter(oligo == input.oligo,
             #        rep %in% replicates) %>%
             ggplot(aes(x = temp-273.15)) +
@@ -1507,9 +1669,17 @@ server <- function(input, output, session) {
             facet_grid(paste(comment, rep, sep = '/')~paste(oligo, ramp, sep = '/'),
                        scales = 'free_y') +
             theme_pander() +
-            scale_color_viridis_c(name = bquote(Delta*epsilon*' ('*M^-1~cm^-1*')')) +
-            labs(x = "T (°C)", y = bquote(epsilon*' ('*M^-1~cm^-1*')'))
+            scale_color_viridis_c(name = bquote(Delta*epsilon*' ('*M^-1~cm^-1*')'))
 
+        if (input$toggle.eps == TRUE) { #modifies axes titles
+            p345 <- p345 + ylab(bquote(epsilon*' ('*M^-1~cm^-1*')')) +
+                scale_color_viridis_c(name = bquote(Delta*epsilon*' ('*M^-1~cm^-1*')'))
+        } else {
+            p345 <- p345 + ylab('A') +
+                scale_color_viridis_c(name = bquote(Delta*A))
+        }
+
+        return(p345)
     })
 
     output$p.bases <- renderPlot({
