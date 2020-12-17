@@ -186,10 +186,10 @@ ui <- dashboardPagePlus(
                 ),
                 sliderInput(
                     "temp.therm",
-                    "Temperature (K) for DeltaG", #Temperature for deltaG calculation
-                    min = 273,
-                    max = 373,
-                    value = 273.15 + 22
+                    "Temperature (°C) for DeltaG", #Temperature for deltaG calculation
+                    min = 0,
+                    max = 100,
+                    value = 22
                 )
             ),
             boxPlus(
@@ -875,11 +875,11 @@ server <- function(input, output, session) {
         if(file.toggle()=='no') {return(NULL)}
         else {
             p45 <- ggplot(data = melt.filtered(),
-                          aes(x = T.K, y = abs.melt, color = id, shape = ramp)) +
+                          aes(x = T.K-273.15, y = abs.melt, color = id, shape = ramp)) +
                 geom_point(size = input$size.dot.melt, alpha = input$alpha.dot.melt) +
                 scale_color_d3() +
                 theme_pander() +
-                xlab("Temperature (K)")
+                xlab("Temperature (°C)")
 
 
             if (input$toggle.eps == TRUE) { #modifies axes titles
@@ -945,11 +945,11 @@ server <- function(input, output, session) {
     #plot derivatives
     output$p.melt.derivative <- renderPlot({
 
-        p46 <- ggplot(melt.derivative(), aes(T.K, emp, color = id, shape = ramp)) +
+        p46 <- ggplot(melt.derivative(), aes(T.K-273.15, emp, color = id, shape = ramp)) +
             geom_point(size = input$size.dot.melt, alpha = input$alpha.dot.melt) +
             theme_pander() +
             scale_color_d3(palette = "category20") +
-            xlab("Temperature (K)")
+            xlab("Temperature (°C)")
 
         if (input$toggle.eps == TRUE) { #modifies axes titles
             p46 <- p46 + ylab(bquote(Delta*epsilon*'/'*Delta*'T ('*M^-1~cm^-1*K^-1*')'))
@@ -1258,10 +1258,10 @@ server <- function(input, output, session) {
         # if(is.null(input$input.file)) {return(NULL)}
         # else {
         p0 <- ggplot(fit.melt.result.df()) +
-            geom_point(aes(T.K, abs.melt, color = id), size = input$size.dot.melt, alpha = input$alpha.dot.melt, shape = 16) + #plots the experimental data
-            geom_line(aes(x = T.K, y = raw.fit.y, color = id),
+            geom_point(aes(T.K-273.15, abs.melt, color = id), size = input$size.dot.melt, alpha = input$alpha.dot.melt, shape = 16) + #plots the experimental data
+            geom_line(aes(x = T.K-273.15, y = raw.fit.y, color = id),
                       size = input$size.line.melt, alpha = input$alpha.line.melt) +
-            xlab("Temperature (K)") +
+            xlab("Temperature (°C)") +
             # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) +
             labs(color="id") +
             # scale_color_d3(palette = "category20") +
@@ -1289,9 +1289,9 @@ server <- function(input, output, session) {
 
         #toggles baselines on and off
         if (input$toggle.baseline == T) {
-            p0 <-  p0 + geom_line(aes(x = T.K, y = low.T.baseline, color = id),
+            p0 <-  p0 + geom_line(aes(x = T.K-273.15, y = low.T.baseline, color = id),
                                   size = input$size.baseline.melt, alpha = input$alpha.baseline.melt, linetype = "dashed") +
-                geom_line(aes(x = T.K, y = high.T.baseline, color = id),
+                geom_line(aes(x = T.K-273.15, y = high.T.baseline, color = id),
                           size = input$size.baseline.melt, alpha = input$alpha.baseline.melt, linetype = "dashed")
         } else { p0 }
 
@@ -1319,11 +1319,11 @@ server <- function(input, output, session) {
         if(file.toggle()=='no') {return(NULL)}
         else {
             p44 <- ggplot(fit.melt.result.df()) +
-                geom_point(aes(T.K, folded.fraction, color = id),
+                geom_point(aes(T.K-273.15, folded.fraction, color = id),
                            size = input$size.dot.melt-2, alpha = input$alpha.dot.melt,
                            shape = 16) + #plots the experimental data
                 ylab("folded fraction") + #modifies axes titles
-                xlab("Temperature (K)") +
+                xlab("Temperature (°C)") +
                 # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) +
                 labs(color="id") +
                 # scale_color_d3(palette = "category20") +
@@ -1367,11 +1367,11 @@ server <- function(input, output, session) {
         if(file.toggle()=='no'){return(NULL)}
         else {
             p43 <- ggplot(fit.melt.result.df()) +
-                geom_point(aes(T.K, folded.fraction.base, color = id),
+                geom_point(aes(T.K-273.15, folded.fraction.base, color = id),
                            size = input$size.dot.melt, alpha = input$alpha.dot.melt,
                            shape = 16) + #plots the experimental data
                 ylab(bquote(bold("folded fraction"))) + #modifies axes titles
-                xlab("Temperature (K)") +
+                xlab("Temperature (°C)") +
                 # scale_y_continuous(limits=c(-0.1,1.1), breaks = c(0, 0.25, 0.5, 0.75, 1.0)) +
                 labs(color="id") +
                 # scale_color_d3(palette = "category20") +
@@ -1841,7 +1841,7 @@ server <- function(input, output, session) {
             mutate(init.Tm = init.Tm - 273.15) %>%
             distinct() %>%
             group_by(id) %>%
-            mutate(DeltaG = DeltaH - input$temp.therm * DeltaS) %>%
+            mutate(DeltaG = DeltaH - (input$temp.therm+273.15) * DeltaS) %>%
             group_by(oligo, ramp, comment) %>%
             mutate(mean.Tm.C = mean(fit.Tm.C),
                    sd.Tm.C = SD(fit.Tm.C))
