@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 box profile</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for boxProfile {shinydashboardPlus}"><tr><td>boxProfile {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 box profile</h2>
+
+<h3>Description</h3>
+
+<p>Create box profile
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+boxProfile(..., src = NULL, title = NULL, subtitle = NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>any element such as boxProfileItemList.</p>
+</td></tr>
+<tr valign="top"><td><code>src</code></td>
+<td>
+<p>profile image, if any.</p>
+</td></tr>
+<tr valign="top"><td><code>title</code></td>
+<td>
+<p>title.</p>
+</td></tr>
+<tr valign="top"><td><code>subtitle</code></td>
+<td>
+<p>subtitle.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(
+     box(
+      title = "Box with profile",
+      status = "primary",
+      boxProfile(
+       src = "https://adminlte.io/themes/AdminLTE/dist/img/user4-128x128.jpg",
+       title = "Nina Mcintire",
+       subtitle = "Software Engineer",
+       boxProfileItemList(
+        bordered = TRUE,
+        boxProfileItem(
+         title = "Followers",
+         description = 1322
+        ),
+        boxProfileItem(
+         title = "Following",
+         description = 543
+        ),
+        boxProfileItem(
+         title = "Friends",
+         description = 13287
+        )
+       )
+      )
+     )
+    ),
+    title = "boxProfile"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

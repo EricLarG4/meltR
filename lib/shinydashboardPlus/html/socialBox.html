@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 social box</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for socialBox {shinydashboardPlus}"><tr><td>socialBox {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 social box</h2>
+
+<h3>Description</h3>
+
+<p>Create social box
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+socialBox(
+  ...,
+  src = NULL,
+  title = NULL,
+  subtitle = NULL,
+  width = 6,
+  height = NULL,
+  collapsible = TRUE,
+  closable = TRUE,
+  comments = NULL,
+  footer = NULL,
+  footer_padding = TRUE
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>body content. May include attachmentBlock for instance.</p>
+</td></tr>
+<tr valign="top"><td><code>src</code></td>
+<td>
+<p>header image, if any.</p>
+</td></tr>
+<tr valign="top"><td><code>title</code></td>
+<td>
+<p>box title.</p>
+</td></tr>
+<tr valign="top"><td><code>subtitle</code></td>
+<td>
+<p>box subtitle.</p>
+</td></tr>
+<tr valign="top"><td><code>width</code></td>
+<td>
+<p>box width (between 1 and 12).</p>
+</td></tr>
+<tr valign="top"><td><code>height</code></td>
+<td>
+<p>box height.</p>
+</td></tr>
+<tr valign="top"><td><code>collapsible</code></td>
+<td>
+<p>If TRUE, display a button in the upper right that allows the user to collapse the box.</p>
+</td></tr>
+<tr valign="top"><td><code>closable</code></td>
+<td>
+<p>If TRUE, display a button in the upper right that allows the user to close the box.</p>
+</td></tr>
+<tr valign="top"><td><code>comments</code></td>
+<td>
+<p>slot for boxComments.</p>
+</td></tr>
+<tr valign="top"><td><code>footer</code></td>
+<td>
+<p>box footer, if any.</p>
+</td></tr>
+<tr valign="top"><td><code>footer_padding</code></td>
+<td>
+<p>TRUE by default: whether the footer has margin or not.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(
+     socialBox(
+      title = "Social Box",
+      subtitle = "example-01.05.2018",
+      src = "https://adminlte.io/themes/AdminLTE/dist/img/user4-128x128.jpg",
+      "Some text here!",
+      attachmentBlock(
+       src = "https://adminlte.io/themes/AdminLTE/dist/img/photo1.png",
+       title = "Test",
+       title_url = "https://google.com",
+       "This is the content"
+      ),
+      comments = tagList(
+       lapply(X = 1:10, FUN = function(i) {
+        boxComment(
+          src = "https://adminlte.io/themes/AdminLTE/dist/img/user3-128x128.jpg",
+          title = paste("Comment", i),
+          date = "01.05.2018",
+          paste0("The ", i, "-th comment")
+        )
+       })
+      ),
+      footer = "The footer here!"
+     )
+    ),
+    title = "socialBox"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 description block</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for descriptionBlock {shinydashboardPlus}"><tr><td>descriptionBlock {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 description block</h2>
+
+<h3>Description</h3>
+
+<p>Create a description block, perfect for writing statistics
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+descriptionBlock(
+  number = NULL,
+  numberColor = NULL,
+  numberIcon = NULL,
+  header = NULL,
+  text = NULL,
+  rightBorder = TRUE,
+  marginBottom = FALSE
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>number</code></td>
+<td>
+<p>any number.</p>
+</td></tr>
+<tr valign="top"><td><code>numberColor</code></td>
+<td>
+<p>number color: see here for a list of valid colors <a href="https://adminlte.io/themes/AdminLTE/pages/UI/general.html">https://adminlte.io/themes/AdminLTE/pages/UI/general.html</a>.</p>
+</td></tr>
+<tr valign="top"><td><code>numberIcon</code></td>
+<td>
+<p>number icon, if any. Should be written like &quot;fa fa-times&quot;.</p>
+</td></tr>
+<tr valign="top"><td><code>header</code></td>
+<td>
+<p>bold text.</p>
+</td></tr>
+<tr valign="top"><td><code>text</code></td>
+<td>
+<p>additional text.</p>
+</td></tr>
+<tr valign="top"><td><code>rightBorder</code></td>
+<td>
+<p>TRUE by default. Whether to display a right border to
+separate two blocks. The last block on the right should not have a right border.</p>
+</td></tr>
+<tr valign="top"><td><code>marginBottom</code></td>
+<td>
+<p>FALSE by default. Set it to TRUE when the
+descriptionBlock is used in a boxPad context.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(
+     box(
+      solidHeader = FALSE,
+      title = "Status summary",
+      background = NULL,
+      width = 4,
+      status = "danger",
+      footer = fluidRow(
+        column(
+          width = 6,
+          descriptionBlock(
+            number = "17%", 
+            numberColor = "green", 
+            numberIcon = "caret-up",
+            header = "$35,210.43", 
+            text = "TOTAL REVENUE", 
+            rightBorder = TRUE,
+            marginBottom = FALSE
+          )
+        ),
+        column(
+          width = 6,
+          descriptionBlock(
+            number = "18%", 
+            numberColor = "red", 
+            numberIcon = "caret-down",
+            header = "1200", 
+            text = "GOAL COMPLETION", 
+            rightBorder = FALSE,
+            marginBottom = FALSE
+          )
+        )
+      )
+     )
+    ),
+    title = "Description Blocks"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

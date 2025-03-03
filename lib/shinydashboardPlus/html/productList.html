@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 product list container</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for productList {shinydashboardPlus}"><tr><td>productList {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 product list container</h2>
+
+<h3>Description</h3>
+
+<p>Create a container product list elements
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+productList(...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>slot for productListItem.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(
+     box(
+      title = "Product List",
+      status = "primary",
+      productList(
+        productListItem(
+          src = "https://www.pngmart.com/files/1/Haier-TV-PNG.png", 
+          productTitle = "Samsung TV", 
+          productPrice = "$1800", 
+          priceColor = "warning",
+          "This is an amazing TV, but I don't like TV!"
+        ),
+        productListItem(
+          src = "https://upload.wikimedia.org/wikipedia/commons/7/77/IMac_Pro.svg", 
+          productTitle = "Imac 27", 
+          productPrice = "$4999", 
+          priceColor = "danger",
+          "This is were I spend most of my time!"
+        )
+      )
+     )
+    ),
+    title = "Product List"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

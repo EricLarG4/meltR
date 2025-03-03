@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 vertical progress bar</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for verticalProgress {shinydashboardPlus}"><tr><td>verticalProgress {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 vertical progress bar</h2>
+
+<h3>Description</h3>
+
+<p>This creates a vertical progress bar.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+verticalProgress(
+  value,
+  min = 0,
+  max = 100,
+  height = "40%",
+  striped = FALSE,
+  active = FALSE,
+  status = "primary",
+  size = NULL
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>value</code></td>
+<td>
+<p>Progress bar value. Must be between min and max.</p>
+</td></tr>
+<tr valign="top"><td><code>min</code></td>
+<td>
+<p>Progress bar minimum value (0 by default).</p>
+</td></tr>
+<tr valign="top"><td><code>max</code></td>
+<td>
+<p>Progress bar maximum value (100 by default).</p>
+</td></tr>
+<tr valign="top"><td><code>height</code></td>
+<td>
+<p>Progress bar default height (40 percent by default).</p>
+</td></tr>
+<tr valign="top"><td><code>striped</code></td>
+<td>
+<p>Whether the progress is striped or not. FALSE by default.</p>
+</td></tr>
+<tr valign="top"><td><code>active</code></td>
+<td>
+<p>Whether the progress is active or not. FALSE by default.</p>
+</td></tr>
+<tr valign="top"><td><code>status</code></td>
+<td>
+<p>Progress bar status. &quot;primary&quot; by default or &quot;warning&quot;, &quot;info&quot;,
+&quot;danger&quot; or &quot;success&quot;.</p>
+</td></tr>
+<tr valign="top"><td><code>size</code></td>
+<td>
+<p>Progress bar size. NULL by default: &quot;sm&quot;, &quot;xs&quot; or &quot;xxs&quot; also available.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+   ui = dashboardPagePlus(
+     header = dashboardHeaderPlus(
+      enable_rightsidebar = TRUE,
+      rightSidebarIcon = "gears"
+     ),
+     sidebar = dashboardSidebar(),
+     body = dashboardBody(
+      verticalProgress(
+       value = 10,
+       striped = TRUE,
+       active = TRUE
+      ),
+      verticalProgress(
+       value = 50,
+       active = TRUE,
+       status = "warning",
+       size = "xs"
+      ),
+      verticalProgress(
+       value = 20,
+       status = "danger",
+       size = "sm",
+       height = "60%"
+      )
+     ),
+     rightsidebar = rightSidebar(),
+     title = "Right Sidebar"
+   ),
+   server = function(input, output) { }
+ )
+}
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

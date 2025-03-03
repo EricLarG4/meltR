@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 dashboard right sidebar</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for rightSidebar {shinydashboardPlus}"><tr><td>rightSidebar {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 dashboard right sidebar</h2>
+
+<h3>Description</h3>
+
+<p>This creates a right sidebar.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+rightSidebar(..., background = "dark", width = 230, .items = NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>slot for rightSidebarTabContent. Not compatible with .items.</p>
+</td></tr>
+<tr valign="top"><td><code>background</code></td>
+<td>
+<p>background color: &quot;dark&quot; or &quot;light&quot;.</p>
+</td></tr>
+<tr valign="top"><td><code>width</code></td>
+<td>
+<p>Sidebar width in pixels. Numeric value expected. 230 by default.</p>
+</td></tr>
+<tr valign="top"><td><code>.items</code></td>
+<td>
+<p>Pass element here if you do not want to embed them in panels. Not compatible with ...</p>
+</td></tr>
+</table>
+
+
+<h3>Note</h3>
+
+<p>Until a maximum of 5 rightSidebarTabContent inside! AdminLTE 2 does not
+support more panels.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+   ui = dashboardPagePlus(
+     header = dashboardHeaderPlus(
+      enable_rightsidebar = TRUE,
+      rightSidebarIcon = "gears"
+     ),
+     sidebar = dashboardSidebar(),
+     body = dashboardBody(),
+     rightsidebar = rightSidebar(
+      background = "dark",
+       rightSidebarTabContent(
+        id = 1,
+        icon = "desktop",
+        title = "Tab 1",
+        active = TRUE,
+        sliderInput(
+         "obs", 
+         "Number of observations:",
+          min = 0, max = 1000, value = 500
+         )
+       ),
+       rightSidebarTabContent(
+        id = 2,
+        title = "Tab 2",
+        textInput("caption", "Caption", "Data Summary")
+       ),
+       rightSidebarTabContent(
+        id = 3,
+        title = "Tab 3",
+        icon = "paint-brush",
+        numericInput("obs", "Observations:", 10, min = 1, max = 100)
+       )
+     ),
+     title = "Right Sidebar"
+   ),
+   server = function(input, output) { }
+ )
+}
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

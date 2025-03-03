@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 vertical block container</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for boxPad {shinydashboardPlus}"><tr><td>boxPad {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 vertical block container</h2>
+
+<h3>Description</h3>
+
+<p>Create a vertical container for descriptionBlock.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+boxPad(..., color = NULL, style = NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>any element such as descriptionBlock.</p>
+</td></tr>
+<tr valign="top"><td><code>color</code></td>
+<td>
+<p>background color: see here for a list of valid colors <a href="https://adminlte.io/themes/AdminLTE/pages/UI/general.html">https://adminlte.io/themes/AdminLTE/pages/UI/general.html</a>.</p>
+</td></tr>
+<tr valign="top"><td><code>style</code></td>
+<td>
+<p>custom CSS, if any.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(
+     box(title = "Box with right pad",
+      status = "warning",
+      fluidRow(
+        column(width = 6),
+        column(
+          width = 6,
+          boxPad(
+            color = "green",
+            descriptionBlock(
+              header = "8390", 
+              text = "VISITS", 
+              rightBorder = FALSE,
+              marginBottom = TRUE
+            ),
+            descriptionBlock(
+              header = "30%", 
+              text = "REFERRALS", 
+              rightBorder = FALSE,
+              marginBottom = TRUE
+            ),
+            descriptionBlock(
+              header = "70%", 
+              text = "ORGANIC", 
+              rightBorder = FALSE,
+              marginBottom = FALSE
+            )
+          )
+        )
+      )
+     )
+    ),
+    title = "boxPad"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

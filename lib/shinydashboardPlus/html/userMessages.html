@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 user message container</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for userMessages {shinydashboardPlus}"><tr><td>userMessages {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 user message container</h2>
+
+<h3>Description</h3>
+
+<p>Create a user message container
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+userMessages(..., status, width = 4)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>Slot for <a href="userMessage.html">userMessage</a>.</p>
+</td></tr>
+<tr valign="top"><td><code>status</code></td>
+<td>
+<p>Messages status. See here for a list of valid colors 
+<a href="https://adminlte.io/themes/AdminLTE/pages/UI/general.html">https://adminlte.io/themes/AdminLTE/pages/UI/general.html</a>.</p>
+</td></tr>
+<tr valign="top"><td><code>width</code></td>
+<td>
+<p>Container width: between 1 and 12.</p>
+</td></tr>
+</table>
+
+
+<h3>Note</h3>
+
+<p>Better to include in a <a href="boxPlus.html">boxPlus</a>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ library(shinydashboardPlus)
+ 
+ shinyApp(
+  ui = dashboardPagePlus(
+    dashboardHeaderPlus(),
+    dashboardSidebar(),
+    dashboardBody(
+     boxPlus(
+      "Box with messages",
+      solidheader = TRUE,
+      status = "warning",
+      userMessages(
+       width = 12,
+       status = "success",
+        userMessage(
+         author = "Alexander Pierce",
+         date = "20 Jan 2:00 pm",
+         src = "https://adminlte.io/themes/AdminLTE/dist/img/user1-128x128.jpg",
+         side = NULL,
+         "Is this template really for free? That's unbelievable!"
+       ),
+       userMessage(
+         author = "Sarah Bullock",
+         date = "23 Jan 2:05 pm",
+         src = "https://adminlte.io/themes/AdminLTE/dist/img/user3-128x128.jpg",
+         side = "right",
+         "You better believe it!"
+       )
+      )
+     ),
+     userMessages(
+       width = 6,
+       status = "danger",
+        userMessage(
+         author = "Alexander Pierce",
+         date = "20 Jan 2:00 pm",
+         src = "https://adminlte.io/themes/AdminLTE/dist/img/user1-128x128.jpg",
+         side = NULL,
+         "Is this template really for free? That's unbelievable!"
+       ),
+       userMessage(
+         author = "Sarah Bullock",
+         date = "23 Jan 2:05 pm",
+         src = "https://adminlte.io/themes/AdminLTE/dist/img/user3-128x128.jpg",
+         side = "right",
+         "You better believe it!"
+       )
+      )
+    ),
+    title = "user Message"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

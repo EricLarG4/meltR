@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 user post</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for userPost {shinydashboardPlus}"><tr><td>userPost {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 user post</h2>
+
+<h3>Description</h3>
+
+<p>Create a user post
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+userPost(
+  ...,
+  id = NULL,
+  src = NULL,
+  author = NULL,
+  description = NULL,
+  collapsible = TRUE,
+  collapsed = FALSE
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>post content, slot for userPostToolItemList.</p>
+</td></tr>
+<tr valign="top"><td><code>id</code></td>
+<td>
+<p>unique id of the post.</p>
+</td></tr>
+<tr valign="top"><td><code>src</code></td>
+<td>
+<p>profile image, if any.</p>
+</td></tr>
+<tr valign="top"><td><code>author</code></td>
+<td>
+<p>post author.</p>
+</td></tr>
+<tr valign="top"><td><code>description</code></td>
+<td>
+<p>post description.</p>
+</td></tr>
+<tr valign="top"><td><code>collapsible</code></td>
+<td>
+<p>If TRUE, display a button in the upper right that allows the user to collapse the comment.</p>
+</td></tr>
+<tr valign="top"><td><code>collapsed</code></td>
+<td>
+<p>Whether the comment is collapsed when the application starts, FALSE by default.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(
+     box(
+      title = "Box with user comment",
+      status = "primary",
+      userPost(
+       id = 1,
+       src = "https://adminlte.io/themes/AdminLTE/dist/img/user1-128x128.jpg",
+       author = "Jonathan Burke Jr.",
+       description = "Shared publicly - 7:30 PM today",
+       "Lorem ipsum represents a long-held tradition for designers, 
+       typographers and the like. Some people hate it and argue for 
+       its demise, but others ignore the hate as they create awesome 
+       tools to help create filler text for everyone from bacon 
+       lovers to Charlie Sheen fans.",
+       userPostToolItemList(
+        userPostToolItem(dashboardLabel("item 1")),
+        userPostToolItem(dashboardLabel("item 2", status = "danger"), side = "right")
+       )
+      ),
+      userPost(
+       id = 2,
+       src = "https://adminlte.io/themes/AdminLTE/dist/img/user6-128x128.jpg",
+       author = "Adam Jones",
+       description = "Shared publicly - 5 days ago",
+       userPostMedia(src = "https://adminlte.io/themes/AdminLTE/dist/img/photo2.png"),
+       userPostToolItemList(
+        userPostToolItem(dashboardLabel("item 1")),
+        userPostToolItem(dashboardLabel("item 2", status = "danger"), side = "right")
+       )
+      )
+     )
+    ),
+    title = "userPost"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

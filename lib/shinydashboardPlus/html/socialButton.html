@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: AdminLTE2 social button</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for socialButton {shinydashboardPlus}"><tr><td>socialButton {shinydashboardPlus}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>AdminLTE2 social button</h2>
+
+<h3>Description</h3>
+
+<p>Create a social button
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+socialButton(url, type = NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>url</code></td>
+<td>
+<p>if the button should redirect somewhere.</p>
+</td></tr>
+<tr valign="top"><td><code>type</code></td>
+<td>
+<p>social network name: see here for valid names <a href="https://adminlte.io/themes/AdminLTE/pages/UI/buttons.html">https://adminlte.io/themes/AdminLTE/pages/UI/buttons.html</a>.</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>David Granjon, <a href="mailto:dgranjon@ymail.com">dgranjon@ymail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+if (interactive()) {
+ library(shiny)
+ library(shinydashboard)
+ shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(
+     box(
+      title = "Social Buttons",
+      status = NULL,
+      socialButton(
+        url = "https://dropbox.com",
+        type = "dropbox"
+      ),
+      socialButton(
+        url = "https://github.com",
+        type = "github"
+      )
+     )
+    ),
+    title = "Social Buttons"
+  ),
+  server = function(input, output) { }
+ )
+}
+
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>shinydashboardPlus</em> version 0.7.5 <a href="00Index.html">Index</a>]</div>
+</body></html>
